@@ -24,8 +24,10 @@ phantomr_T1rho2 produces two MS-Excel spreadsheets, phantomr?_T1rho2.xlsx and ph
 Similarly, the files necessary for calculating T2* (for a single set of echo times in different series) are:
 
 1. dicom_lst2
-2. phantoms_plt
-3. phantoms_T2star
+2. phantoms_plt2
+3. phantoms_T2star2
+
+phantoms_plt2 lets the user select the series that make up a complete set of T2* echo times.  phantoms_T2star2 processes all of the phantoms*_plt2.mat files in the current directory.
 
 If a DICOMDIR file exists, dicom_lst.m, will read the DICOMDIR file and use the series information.
 
