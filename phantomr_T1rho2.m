@@ -17,9 +17,9 @@
 %          The data and results are saved into MAT files,
 %     phantomr?_T1rho2.mat.
 %
-%     NOTES:  1.  Matlab MAT files dicom_lst2.mat and phantomr?_plt2.mat
-%             must be in the current directory or path.  ? is the
-%             series number.
+%     NOTES:  1.  Matlab MAT files dicom_lst.mat or dicom_lst2.mat and
+%             phantomr?_plt2.mat must be in the current directory or
+%             path.  ? is the series number.
 %
 %             2.  M-file exp_fun1.m must be in the current directory or
 %             path.
@@ -43,15 +43,26 @@ idx0 = [1; 3; 2];
 idx0 = [idx0; flipud(idx0)];           % Index to initial vial T1rhos
 fun = @exp_fun1;        % Exponential function
 %
-% Load Series Data from dicom_lst2.mat
+% Load Image File Data from dicom_lst.mat or dicom_lst2.mat
 %
-load dicom_lst2.mat idvr sn;
+if exist('dicom_lst.mat','file')==2
+  load dicom_lst.mat idvr sn stxt;
+elseif exist('dicom_lst2.mat','file')==2
+  load dicom_lst2.mat idvr sn stxt;
+else
+  error([' *** ERROR in phantomr_plt2:  dicom_lst.mat or ', ...
+         'dicom_lst2.mat does not exist!']);
+end
+%
+idv = ~startsWith(stxt,'WIP');         % Exclude Philips T1rho values
+idvr = idvr&idv;
+%
 n = sum(idvr);          % Number of series to analyze
 sn = sn(idvr);          % Series numbers
 %
 % Spreadsheet Labels
 %
-lbls = {'' 'N' 'Minimum' 'Maximum' 'SD' 'Mean' 'Fit'};
+lbls = {'' 'N' 'Minimum' 'Maximum' 'Fit' 'Mean' 'SD' 'COV'};
 tl = cell2table(lbls);
 %
 % Loop through the Series
@@ -66,8 +77,8 @@ for j = 1:n
 % Load T1rho Masks
 %
    matfile = ['phantomr' snt '_plt2.mat'];
-   load(matfile,'fnams','ddir','istrts','iszs','nfile','nslm', ...
-        'nsls','nsplt','nvial','splt','v','vmsk');
+   load(matfile,'istrts','iszs','nfile','nslm','nsls','nsplt', ...
+                'nvial','splt','v','vmsk');
 %
    npix = prod(iszs);   % Number of pixels in an image
 %
@@ -100,27 +111,21 @@ for j = 1:n
 % Read T1 Slice Image
 %
          nf = nl+l;          % Index to file for this spin lock time
-         fnam = fnams{nf};   % Filename for this spin lock time
-         fprintf(1,['\n Reading file:  ' strrep(fnam,'\','\\') ...
-                    ', Slice:  ' sll ', Spin lock time:  ' ...
-                    int2str(splt(l)) ' ms']);
-         info = dicominfo(fullfile(ddir,fnam));
-         sl = double(info.RescaleSlope);
-         y0 = double(info.RescaleIntercept);
+%
          img = v(:,:,nf);
-         img = sl*double(img)+y0;
 %
          for m = 1:nvial
             rimgc{l,m} = img(vmsk(:,m,k))';
          end
       end
+%
       for m = 1:nvial
          rimgs{k,m} = cat(1,rimgc{:,m});
       end
+%
    end
 %
-   fprintf(1,'\n\n');
-   clear fnam img info rimgc;
+   clear img rimgc;
 %
 % Set Up Arrays for Loop
 %
@@ -225,6 +230,8 @@ for j = 1:n
       end
    end
 %
+   sT1rhovcov = 100*sT1rhovsd./sT1rhovm;    % Calculate COV (%)
+%
 % Plot T1rho Values for Each Slice
 %
    splt_txt = sprintf('%i, ',splt);
@@ -265,13 +272,15 @@ for j = 1:n
       T1rhovsd(k) = std(T1rhov);
    end
 %
+   T1rhovcov = 100*T1rhovsd./T1rhovm;
+%
 % Write Vial T1rho to MS-Excel Spreadsheet
 %
    xlsfile = ['phantomr' snt '_T1rho2.xlsx'];
 %
-   t = table(npxv,T1rhovmn,T1rhovmx,T1rhovsd,T1rhovm, ...
-            T1rhonls,'RowNames',vnams,'VariableNames',lbls(2:7), ...
-            'DimensionNames',{'Vial#','Variables'});
+   t = table(npxv,T1rhovmn,T1rhovmx,T1rhonls,T1rhovm,T1rhovsd, ...
+            T1rhovcov,'RowNames',vnams,'VariableNames',lbls(2:8), ...
+            'DimensionNames',{'Vial #','Variables'});
    writetable(t,xlsfile,'WriteMode','replacefile','WriteRowNames',true);
 %
 % Write Vial by Slice T1rho to MS-Excel Spreadsheet
@@ -282,7 +291,7 @@ for j = 1:n
    nhdr = size(lblss,2);
    vnams_hdr = cell(1,nhdr);
    vnams_hdr{1} = 'Slice #';
-   vnams_hdr(4:7:nhdr) = vnams;
+   vnams_hdr(5:8:nhdr) = vnams;
    tlbls = cell2table([vnams_hdr; lblss]);
    writetable(tlbls,xlsfile,'WriteMode','replacefile', ...
               'WriteVariableNames',false);
@@ -292,7 +301,8 @@ for j = 1:n
    sl_lbls = strrep(sl_lbls,'  ',' ');
 %
    dat0 = NaN(nslm,nvial-1);
-   dat = [npxvs sT1rhovmn sT1rhovmx sT1rhovsd sT1rhovm T1rhonlss dat0];
+   dat = [npxvs sT1rhovmn sT1rhovmx T1rhonlss sT1rhovm sT1rhovsd, ...
+         sT1rhovcov dat0];
    nhdr = nhdr-1;       % With row names
    idv = [1:6:nhdr 2:6:nhdr 3:6:nhdr 4:6:nhdr 5:6:nhdr 6:6:nhdr];
    dat = dat(:,idv);
