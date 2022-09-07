@@ -1,5 +1,5 @@
 # MRI_Phantom
-Matlab code for segmenting and calculating T1rho or T2* from Philips MRI images of phantom
+Matlab code for segmenting and calculating T1rho or T2* from Philips MRI images of a phantom.
 
 The MRI phantom was purchased from The Phantom Lab, Salem, New York, USA.  The phantom contains three pairs of vials with agarose concentrations of 2%, 3% and 4%.  The imaging was done with a 3T Philips machine.  The MRI series description must contain the spin lock times as this is not stored in the DICOM header.  The spin lock times must be between the characters "SL" (spin lock) and "ms" (milliseconds).  See dicom_lst.m and dicom_lst2.m for implementation.
 
@@ -21,7 +21,7 @@ phantomr_T1rho2 does the calculation of the T1rho values.  It requires the funct
 
 phantomr_T1rho2 produces two MS-Excel spreadsheets, phantomr?_T1rho2.xlsx and phantomrs?_T1rho2.xlsx.  ? is the series number.  Vial results are written to phantomr?_T1rho2.xlsx and slice results are written to phantomrs?_T1rho2.xlsx.  The data and results are saved to MAT files, phantomr?_T1rho2.mat.
 
-The phantom has vials with different concentrations of MnCl2 in RO purified water for getting different T2* values.  Similar to the T1rho processing, the files necessary for calculating T2* (for a single set of echo times in different series) are:
+The phantom also has vials with different concentrations of MnCl2 in RO purified water for getting different T2* values.  Similar to the T1rho processing, the files necessary for calculating T2* (for a single set of echo times in different series) are:
 
 1. dicom_lst2
 2. phantoms_plt2
