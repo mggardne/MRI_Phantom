@@ -1,7 +1,7 @@
 # MRI_Phantom
-Matlab code for segmenting and calculating T1rho or T2* from Philips MRI images of a phantom.
+Matlab code for segmenting and calculating T1rho or T2* from Philips MRI images of either a phantom with six small vials or a single large tube phantom.
 
-The MRI phantom was purchased from The Phantom Lab, Salem, New York, USA.  The phantom contains three pairs of vials with agarose concentrations of 2%, 3% and 4%.  The imaging was done with a 3T Philips machine.  The MRI series description must contain the spin lock times as this is not stored in the DICOM header.  The spin lock times must be between the characters "SL" (spin lock) and "ms" (milliseconds).  See dicom_lst.m and dicom_lst2.m for implementation.
+The MRI phantom with six small vials was purchased from The Phantom Lab, Salem, New York, USA.  The phantom contains three pairs of vials with agarose concentrations of 2%, 3% and 4%.  The imaging was done with a 3T Philips machine.  The MRI series description must contain the spin lock times as this is not stored in the DICOM header.  The spin lock times must be between the characters "SL" (spin lock) and "ms" (milliseconds).  See dicom_lst.m and dicom_lst2.m for implementation.
 
 Note that there are three main files that need to be run in sequences as the subsequent files depend on the outputs from the previous file.  Here's the order:
 
@@ -28,6 +28,18 @@ The phantom also has vials with different concentrations of MnCl2 in RO purified
 3. phantoms_T2star2
 
 phantoms_plt2 lets the user select the series that make up a complete set of T2* echo times.  phantoms_T2star2 processes all of the phantoms*_plt2.mat files in the current directory.
+
+The single large tube MRI phantom consists of a Naglene bottle with either a single concentration of agarose gel (for T1rho) or MnCl2 (for T2*).  Similar to the small vials phantom processing, the files necessary for calculating T1rho (for a single set of spin lock times in a single series) are:
+
+1. dicom_lst2
+2. phantomr_plt1
+3. phantomr_T2star1
+
+Similarly, the files necessary for calculating T2* (for a single set of echo times in different series) are:
+
+1. dicom_lst2
+2. phantoms_plt1
+3. phantoms_T2star1
 
 If a DICOMDIR file exists, dicom_lst.m, will read the DICOMDIR file and use the series information.
 
