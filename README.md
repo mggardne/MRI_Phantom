@@ -41,6 +41,8 @@ Similarly, the files necessary for calculating T2* (for a single set of echo tim
 2. phantoms_plt1
 3. phantoms_T2star1
 
+Plot, data, and results spreadsheets similar to the small vials phantom are generated.
+
 If a DICOMDIR file exists, dicom_lst.m, will read the DICOMDIR file and use the series information.
 
 See the comments in the individual files for more information.
