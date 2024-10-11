@@ -26,8 +26,8 @@
 %     masks for the vials are saved to Matlab MAT file:
 %     phantomr?_plt2.mat.  ? is the series number.
 %
-%     NOTES:  1.  Matlab MAT file dicom_lst2.mat must be in the current
-%             directory or path.
+%     NOTES:  1.  Matlab MAT file dicom_lst.mat or dicom_lst2.mat must
+%             be in the current directory or path.
 %
 %             2.  Matlab M-file circ_plt.m must be in the current
 %             directory or path.
@@ -44,9 +44,25 @@ nvial = 6;              % Number of vials
 istrt = [16; 5];        % Start at slice 17 or 6
 nsl = [32; 10];         % Middle 32 or 10 slices
 %
-% Load Image File Data from dicom_lst2.mat
+% Load Image File Data from dicom_lst.mat or dicom_lst2.mat
 %
-load dicom_lst2.mat afiles ddirs idvr isz nimages pspc sn splcktc;
+if exist('dicom_lst.mat','file')==2
+  load dicom_lst.mat afiles idvr idx isz nimages pspc sn splcktc stxt;
+  afiles = afiles(idx);
+  nimages = nimages(idx);
+  n = sum(idx);
+  ddirs = repmat({'.'},n,1);
+elseif exist('dicom_lst2.mat','file')==2
+  load dicom_lst2.mat afiles ddirs idvr isz nimages pspc sn splcktc ...
+                      stxt;
+else
+  error([' *** ERROR in phantomr_plt2:  dicom_lst.mat or ', ...
+         'dicom_lst2.mat does not exist!']);
+end
+%
+idv = ~startsWith(stxt,'WIP');         % Exclude Philips T1rho values
+idvr = idvr&idv;
+%
 n = sum(idvr);          % Number of series to analyze
 ddirr = ddirs(idvr);    % Subdirectories for series
 nfiles = nimages(idvr); % Numbers of files
@@ -97,13 +113,13 @@ for j = 1:n
 %
 % Spin Lock Times as Text
 %
-   stxt = cell(1,nsplt);
-   stxt{1} = sprintf('Spin Lock Times =%2i,',splt(1));
+   sltxt = cell(1,nsplt);
+   sltxt{1} = sprintf('Spin Lock Times =%2i,',splt(1));
    for k = 2:nsplt-1
-      stxt{k} = sprintf(' %2i,',splt(k));
+      sltxt{k} = sprintf(' %2i,',splt(k));
    end
-   stxt{nsplt} = sprintf(' %2i ms',splt(nsplt));
-   stxt = strcat(stxt{:});
+   sltxt{nsplt} = sprintf(' %2i ms',splt(nsplt));
+   sltxt = strcat(sltxt{:});
 %
 % Postscript Plot File Name
 %
@@ -113,14 +129,18 @@ for j = 1:n
 %
    fnams = afiler{j};   % T1rho image file names
 %
-% Get Maximum Unscaled Image Value
+% Get Images and Maximum Scaled Image Value
 %
    valmx = zeros(nfile,1);
-   v = zeros([iszs nfile],'uint16');
+   v = zeros([iszs nfile]);
    for k = 1:nfile
-      img = dicomread(fullfile(ddir,fnams{k}));
+      info = dicominfo(fullfile(ddir,fnams{k}));
+      sl = double(info.RescaleSlope);
+      y0 = double(info.RescaleIntercept);
+      img = dicomread(info);
+      img = sl*double(img)+y0;
       v(:,:,k) = img;
-      valmx(k) = max(img(:));
+      valmx(k) = max(img(:));          % Slice maximum
    end
 %
    scmx = 10*fix(max(valmx)/10);       % Round maximum value down
@@ -150,8 +170,8 @@ for j = 1:n
    pos = get(gca,'Position');
    pos(2) = pos(2)/5;
    set(gca,'Position',pos);
-   title({['Series ' snt ' Phantom Images']; 'MidScan Slice'; stxt}, ...
-         'FontSize',16,'FontWeight','bold');
+   title({['Series ' snt ' Phantom Images']; 'MidScan Slice'; ...
+          sltxt},'FontSize',16,'FontWeight','bold');
    print('-dpsc2','-r600','-fillpage','-append',pfile);
 %
 % Plot Just the Mid Image with Spin Lock Time = 0 ms
@@ -244,7 +264,7 @@ for j = 1:n
    mf = ['phantomr' snt '_plt2.mat'];  % MAT file name
    save(mf,'ctrs','ddir','fnams','idvr','istrts','iszs','lvl', ...
         'nfile','nslm','nsls','nsplt','nvial','rm','rmin','sns', ...
-        'snt','splt','stxt','v','v0','vmsk');
+        'snt','splt','sltxt','v','v0','vmsk');
 %
 % Plot the Six Vial Masks for the Last Slice Image
 %
