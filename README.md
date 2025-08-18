@@ -33,7 +33,7 @@ The single large tube MRI phantom consists of a Naglene bottle with either a sin
 
 1. dicom_lst2
 2. phantomr_plt1
-3. phantomr_T2star1
+3. phantomr_T1rho1
 
 Similarly, the files necessary for calculating T2* (for a single set of echo times in different series) are:
 
