@@ -1,6 +1,6 @@
 %#######################################################################
 %
-%                  * PHANTOM Reduced PLoT 2 Program *
+%                    * PHANTOM Rho PLoT 2 Program *
 %
 %          M-File which reads the T1rho phantom images and plots a
 %     selection of the images and segments the center (mid-scan) images.
@@ -26,13 +26,15 @@
 %     masks for the vials are saved to Matlab MAT file:
 %     phantomr?_plt2.mat.  ? is the series number.
 %
-%     NOTES:  1.  Matlab MAT file dicom_lst.mat or dicom_lst2.mat must
-%             be in the current directory or path.
+%     NOTES:  1.  Matlab MAT file dicom_lst.mat, dicom_lst2.mat or
+%             dicom_lst3.mat must be in the current directory or path.
 %
 %             2.  Matlab M-file circ_plt.m must be in the current
 %             directory or path.
 %
 %     01-Jul-2021 * Mack Gardner-Morse
+%
+%     27-Oct-2026 * Mack Gardner-Morse * Updated to use dicom_lst3.mat.
 %
 
 %#######################################################################
@@ -44,7 +46,8 @@ nvial = 6;              % Number of vials
 istrt = [16; 5];        % Start at slice 17 or 6
 nsl = [32; 10];         % Middle 32 or 10 slices
 %
-% Load Image File Data from dicom_lst.mat or dicom_lst2.mat
+% Load Image File Data from dicom_lst.mat, dicom_lst2.mat or
+% dicom_lst3.mat
 %
 if exist('dicom_lst.mat','file')==2
   load dicom_lst.mat afiles idvr idx isz nimages pspc sn splcktc stxt;
@@ -55,9 +58,12 @@ if exist('dicom_lst.mat','file')==2
 elseif exist('dicom_lst2.mat','file')==2
   load dicom_lst2.mat afiles ddirs idvr isz nimages pspc sn splcktc ...
                       stxt;
+elseif exist('dicom_lst3.mat','file')==2
+  load dicom_lst3.mat afiles ddirs idvr isz nimages pspc sn splcktc ...
+                      stxt;
 else
-  error([' *** ERROR in phantomr_plt2:  dicom_lst.mat or ', ...
-         'dicom_lst2.mat does not exist!']);
+  error([' *** ERROR in phantomr_plt2:  MAT file of MRI series not', ...
+         ' found!']);
 end
 %
 idv = ~startsWith(stxt,'WIP');         % Exclude Philips T1rho values
@@ -71,6 +77,25 @@ isz = isz(idvr,:);      % Image sizes in pixels
 sn = sn(idvr);          % Series numbers
 pspc = pspc(idvr,:);    % Pixel sizes
 spltr = splcktc(idvr);  % T1rho spin lock times
+stxtr = stxt(idvr);     % T1rho series
+stxtrc = cell(n,1);
+for k = 1:n
+   stxtrc{k} = ['Series ' int2str(sn(k)) ', ' stxtr{k}];
+end
+%
+% Select Series to Analyze
+%
+[isel,ok] = listdlg('ListString',stxtrc,'SelectionMode','multiple', ...
+                    'Name','T1rho Series','PromptString', ...
+                    'Select T1rho Series to Analyze','ListSize', ...
+                    [300 400]);
+%
+if ok<1
+  warning(' *** WARNING in phantomr_plt2:  No series selected!');
+  return
+end
+%
+n = length(isel);       % Number of series to analyze
 %
 % Vial In-Plane Dimensions
 %
@@ -92,16 +117,18 @@ for j = 1:n
 %
 % Get Series Specific Indices
 %
-   ddir = ddirr{j};     % Subdirectory for series
-   nfile = nfiles(j);   % Number of image files in this series
-   splt = eval(['[' spltr{j} ']'])';   % T1rho spin lock times
+   id = isel(j);
+   ddir = ddirr{id};    % Subdirectory for series
+%
+   nfile = nfiles(id);  % Number of image files in this series
+   splt = eval(['[' spltr{id} ']'])';  % T1rho spin lock times
    nsplt = size(splt,1);               % Number of spin lock times
    nsls = nfile/nsplt;  % Number of slices
-   iszs = isz(j,:);     % Image size
+   iszs = isz(id,:);    % Image size
    if nsls==64
      id = 1;            % Index to 64 slices series
    elseif nsls==20
-     id = 2;            % Index to 64 slices series
+     id = 2;            % Index to 20 slices series
    else
      error([' *** ERROR in phantomr_plt2:  Incorrect number', ...
                  ' of slices in series!']);

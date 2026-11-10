@@ -17,9 +17,9 @@
 %          The data and results are saved into MAT files,
 %     phantomr?_T1rho2.mat.
 %
-%     NOTES:  1.  Matlab MAT files dicom_lst.mat or dicom_lst2.mat and
-%             phantomr?_plt2.mat must be in the current directory or
-%             path.  ? is the series number.
+%     NOTES:  1.  Matlab MAT files dicom_lst.mat, dicom_lst2.mat or
+%             dicom_lst3.mat and phantomr?_plt2.mat must be in the
+%             current directory or path.  ? is the series number.
 %
 %             2.  M-file exp_fun1.m must be in the current directory or
 %             path.
@@ -28,6 +28,8 @@
 %             vials in the Series.
 %
 %     02-Jul-2021 * Mack Gardner-Morse
+%
+%     27-Oct-2026 * Mack Gardner-Morse * Updated to use dicom_lst3.mat.
 %
 
 %#######################################################################
@@ -43,15 +45,18 @@ idx0 = [1; 3; 2];
 idx0 = [idx0; flipud(idx0)];           % Index to initial vial T1rhos
 fun = @exp_fun1;        % Exponential function
 %
-% Load Image File Data from dicom_lst.mat or dicom_lst2.mat
+% Load Image File Data from dicom_lst.mat, dicom_lst2.mat or
+% dicom_lst3.mat
 %
 if exist('dicom_lst.mat','file')==2
   load dicom_lst.mat idvr sn stxt;
 elseif exist('dicom_lst2.mat','file')==2
   load dicom_lst2.mat idvr sn stxt;
+elseif exist('dicom_lst3.mat','file')==2
+  load dicom_lst3.mat idvr sn stxt;
 else
-  error([' *** ERROR in phantomr_plt2:  dicom_lst.mat or ', ...
-         'dicom_lst2.mat does not exist!']);
+  error([' *** ERROR in phantomr_plt2:  dicom_lst.mat, ', ...
+         'dicom_lst2.mat or dicom_lst3.mat does not exist!']);
 end
 %
 idv = ~startsWith(stxt,'WIP');         % Exclude Philips T1rho values

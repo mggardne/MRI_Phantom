@@ -27,13 +27,15 @@
 %     masks for the vials are saved to Matlab MAT file:
 %     phantoms?_plt2.mat.  ? is the initial series number.
 %
-%     NOTES:  1.  Matlab MAT file dicom_lst2.mat must be in the current
-%             directory or path.
+%     NOTES:  1.  Matlab MAT file dicom_lst2.mat or dicom_lst3.mat must
+%             be in the current directory or path.
 %
 %             2.  Matlab M-file circ_plt.m must be in the current
 %             directory or path.
 %
 %     20-Aug-2021 * Mack Gardner-Morse
+%
+%     27-Oct-2026 * Mack Gardner-Morse * Updated to use dicom_lst3.mat.
 %
 
 %#######################################################################
@@ -47,9 +49,17 @@ nvial = 6;              % Number of vials
 istrt = 12;             % Start at slice 13
 nsl = 24;               % Middle 24 slices
 %
-% Load Image File Data from dicom_lst2.mat
+% Load Image File Data from dicom_lst2.mat or dicom_lst3.mat
 %
-load dicom_lst2.mat afiles ddirs etn ets isz nimages pspc sn stxt;
+if exist('dicom_lst2.mat','file')==2
+  load dicom_lst2.mat afiles ddirs etn ets isz nimages pspc sn stxt;
+elseif exist('dicom_lst3.mat','file')==2
+  load dicom_lst3.mat afiles ddirs etn ets isz nimages pspc sn stxt;
+else
+  error([' *** ERROR in phantoms_plt2:  MAT file of MRI series not', ...
+         ' found!']);
+end
+%
 idv = contains(stxt,'T2*');            % Get T2* series
 n = sum(idv);           % Number of possible series times to analyze
 %
@@ -83,7 +93,7 @@ ddirr = ddirs(idv);     % Subdirectories for series
 nfiles = nimages(idv);  % Numbers of files
 d = diff(nfiles);
 if any(d)
-  error([' *** ERROR in phantoms_plt:  Series do not have the', ...
+  error([' *** ERROR in phantoms_plt2:  Series do not have the', ...
          ' same number of slices!']);
 end
 nfile = nfiles(1);      % Numbers of files/number of slices
@@ -93,7 +103,7 @@ isz = isz(idv,:);       % Image sizes in pixels
 %
 d = diff(isz);
 if any(any(d))
-  error([' *** ERROR in phantoms_plt:  Images do not have the', ...
+  error([' *** ERROR in phantoms_plt2:  Images do not have the', ...
          ' same size!']);
 end
 iszs = isz(1,:);
@@ -111,7 +121,7 @@ etxt{2} = sprintf(' %4.2f,',etns(2));
 for k = 3:n-1
    etxt{k} = sprintf(' %2i,',round(etns(k)));
 end
-etxt{n} = sprintf(' %2i ms',etns(n));
+etxt{n} = sprintf(' %2i ms',round(etns(n)));
 etxt = strcat(etxt{:});
 etxt = strrep(etxt,'  ',' ');
 %
@@ -248,15 +258,15 @@ for k = 1:nsl
        rdat = rdat(idv,:);
        rsize = size(rdat,1);
        if rsize~=6
-         error([' *** ERROR in phantoms_plt:  Incorrect number', ...
+         error([' *** ERROR in phantoms_plt2:  Incorrect number', ...
                 ' of regions were identified!']);
        end
      elseif rsize<6
-       error([' *** ERROR in phantoms_plt:  Less than six regions', ...
+       error([' *** ERROR in phantoms_plt2:  Less than six regions', ...
               ' were identified!']);
      end
    elseif rsize<6
-     error([' *** ERROR in phantoms_plt:  Less than six regions', ...
+     error([' *** ERROR in phantoms_plt2:  Less than six regions', ...
             ' were identified!']);
    end
    ctrs(:,:,k) = rdat.Centroid;

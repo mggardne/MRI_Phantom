@@ -1,6 +1,6 @@
 %#######################################################################
 %
-%                   * PHANTOM Star PLoT 1 Program *
+%                   * PHANTOM Rho PLoT 1 Program *
 %
 %          M-File which reads the T1rho phantom images and plots a
 %     selection of the images and segments the center (mid-scan) images.
@@ -17,13 +17,15 @@
 %     masks for the vial are saved to Matlab MAT file:
 %     phantomr?_plt1.mat.  ? is the series number.
 %
-%     NOTES:  1.  Matlab MAT file dicom_lst2.mat must be in the current
-%             directory or path.
+%     NOTES:  1.  Matlab MAT file dicom_lst2.mat or dicom_lst3.mat must
+%             be in the current directory or path.
 %
 %             2.  Matlab M-file circ_plt.m must be in the current
 %             directory or path.
 %
 %     30-Nov-2021 * Mack Gardner-Morse
+%
+%     27-Oct-2026 * Mack Gardner-Morse * Updated to use dicom_lst3.mat.
 %
 
 %#######################################################################
@@ -37,9 +39,18 @@ nvial = 1;              % Number of vials
 istrt = 24;             % Start at slice 24
 nsl = 16;               % Middle 16 slices
 %
-% Load Image File Data from dicom_lst2.mat
+% Load Image File Data from dicom_lst2.mat or dicom_lst3.mat
 %
-load dicom_lst2.mat afiles ddirs idvr isz nimages pspc sn splcktc stxt;
+if exist('dicom_lst2.mat','file')==2
+  load dicom_lst2.mat afiles ddirs idvr isz nimages pspc sn splcktc ...
+                      stxt;
+elseif exist('dicom_lst3.mat','file')==2
+  load dicom_lst3.mat afiles ddirs idvr isz nimages pspc sn splcktc ...
+                      stxt;
+else
+  error([' *** ERROR in phantomr_plt1:  MAT file of MRI series not', ...
+         ' found!']);
+end
 %
 idv = ~startsWith(stxt,'WIP');         % Exclude Philips T1rho values
 idvr = idvr&idv;
